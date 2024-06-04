@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
         with:
-          java-version: '20'
+          java-version: '21'
           distribution: 'temurin'
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2
@@ -22,7 +22,7 @@ jobs:
       - name: Publish code coverage
         uses: paambaati/codeclimate-action@v3.2.0
         env:
-          CC_TEST_REPORTER_ID: "8defa93ed7ebdac853bd00e10fe8d663e08ecb0db7f539331dc4e69d07d57c2b"
+          CC_TEST_REPORTER_ID: "9259b4022733b9927f1cec2d83c6cd994f79e5b9249d202a6effaf208bb6f45e"
           JACOCO_SOURCE_PATH: app/src/main/java
         with:
           coverageCommand: make report
