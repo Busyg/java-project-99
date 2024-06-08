@@ -22,8 +22,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
 	implementation("com.h2database:h2:2.2.224")
+	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+	implementation("net.datafaker:datafaker:2.1.0")
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation platform('org.junit:junit-bom:5.10.0')
@@ -31,6 +36,8 @@ dependencies {
 	testImplementation("org.assertj:assertj-core:3.25.1")
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
 }
 
