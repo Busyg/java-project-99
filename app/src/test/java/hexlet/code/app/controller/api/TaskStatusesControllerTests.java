@@ -1,8 +1,8 @@
 package hexlet.code.app.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hexlet.code.app.model.User;
-import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.model.TaskStatus;
+import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.util.ModelGenerator;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -24,17 +25,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UsersControllerTests {
-
+public class TaskStatusesControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private UserRepository userRepository;
+    private TaskStatusRepository taskStatusRepository;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -45,9 +44,9 @@ public class UsersControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private JwtRequestPostProcessor token;
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
 
-    private User testUser;
+    private TaskStatus testTaskStatus;
 
     @BeforeEach
     public void setUp() {
@@ -58,64 +57,64 @@ public class UsersControllerTests {
 
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
 
-        testUser = Instancio.of(modelGenerator.getUserModel())
+        testTaskStatus = Instancio.of(modelGenerator.getTaskStatusModel())
                 .create();
-        userRepository.save(testUser);
+        taskStatusRepository.save(testTaskStatus);
     }
 
     @Test
     public void testIndex() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/users").with(jwt()))
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses").with(jwt()))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains("hexlet@example.com");
+        assertThat(result.getResponse().getContentAsString()).contains("to_publish");
     }
 
     @Test
     public void testCreate() throws Exception {
-        var data = Instancio.of(modelGenerator.getUserModel())
+        var data = Instancio.of(modelGenerator.getTaskStatusModel())
                 .create();
         mockMvc.perform(
-                MockMvcRequestBuilders.post("/api/users")
-                        .with(token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(data))
+                        MockMvcRequestBuilders.post("/api/task_statuses")
+                                .with(token)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(data))
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-        var user = userRepository.findByEmail(data.getEmail()).get();
-        assertNotNull(user);
-        assertThat(user.getFirstName()).isEqualTo(data.getFirstName());
-        assertThat(user.getLastName()).isEqualTo(data.getLastName());
+        var taskStatus = taskStatusRepository.findBySlug(data.getSlug()).get();
+        assertNotNull(taskStatus);
+        assertThat(taskStatus.getName()).isEqualTo(data.getName());
+        assertThat(taskStatus.getSlug()).isEqualTo(data.getSlug());
     }
 
     @Test
     public void testShow() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{id}", testUser.getId())
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses/{id}", testTaskStatus.getId())
                         .with(jwt()))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains(testUser.getEmail());
+        assertThat(result.getResponse().getContentAsString()).contains(testTaskStatus.getSlug());
     }
 
     @Test
     public void testUpdate() throws Exception {
         var data = new HashMap<>();
-        data.put("email", "testmail@testmail.com");
-        data.put("firstName", "Test");
+        data.put("name", "testName");
+        data.put("slug", "test_slug");
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", testUser.getId())
-                    .with(token)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(data)))
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/task_statuses/{id}", testTaskStatus.getId())
+                        .with(token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        var user = userRepository.findById(testUser.getId()).get();
-        assertThat(user.getFirstName()).isEqualTo("Test");
-        assertThat(user.getEmail()).isEqualTo("testmail@testmail.com");
+        var taskStatus = taskStatusRepository.findById(testTaskStatus.getId()).get();
+        assertThat(taskStatus.getName()).isEqualTo("testName");
+        assertThat(taskStatus.getSlug()).isEqualTo("test_slug");
     }
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", testUser.getId()).with(jwt()))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/task_statuses/{id}", testTaskStatus.getId()).with(jwt()))
                 .andExpect(MockMvcResultMatchers.status().isOk());
-        assertThat(userRepository.findById(testUser.getId())).isEmpty();
+        assertThat(taskStatusRepository.findById(testTaskStatus.getId())).isEmpty();
     }
 }
