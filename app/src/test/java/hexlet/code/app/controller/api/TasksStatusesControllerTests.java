@@ -28,7 +28,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class TaskStatusesControllerTests {
+public class TasksStatusesControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
