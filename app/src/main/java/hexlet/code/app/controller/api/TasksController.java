@@ -2,11 +2,13 @@ package hexlet.code.app.controller.api;
 
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
+import hexlet.code.app.dto.TaskParamsDTO;
 import hexlet.code.app.dto.TaskUpdateDTO;
 import hexlet.code.app.exception.ResourceNotFoundException;
 import hexlet.code.app.mapper.TaskMapper;
 import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.service.TaskService;
+import hexlet.code.app.specification.TaskSpecification;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,14 +35,17 @@ public class TasksController {
     private TaskService taskService;
     @Autowired
     private TaskMapper taskMapper;
+    @Autowired
+    private TaskSpecification taskSpecification;
 
     @GetMapping(path = "/tasks")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<TaskDTO>> index() {
-        var tasks = taskService.getAll();
+    public ResponseEntity<List<TaskDTO>> index(TaskParamsDTO taskParamsDTO) {
+        var spec = taskSpecification.build(taskParamsDTO);
+        var tasks = taskRepository.findAll(spec);
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(tasks.size()))
-                .body(tasks);
+                .body(tasks.stream().map(taskMapper::map).toList());
     }
 
     @PostMapping("/tasks")

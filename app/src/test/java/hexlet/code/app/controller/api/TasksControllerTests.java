@@ -75,6 +75,39 @@ public class TasksControllerTests {
     }
 
     @Test
+    public void testIndexTitleFilter() throws Exception {
+        var result = mockMvc.perform(MockMvcRequestBuilders.get(
+                "/api/tasks?titleCont=" + testTask.getName()
+        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(testTask.getName());
+    }
+
+    @Test
+    public void testIndexAssigneeFilter() throws Exception {
+        var result = mockMvc.perform(MockMvcRequestBuilders.get(
+                "/api/tasks?assigneeId=" + testTask.getAssignee().getId()
+        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(testTask.getAssignee().getId().toString());
+    }
+
+    @Test
+    public void testIndexStatusFilter() throws Exception {
+        var result = mockMvc.perform(MockMvcRequestBuilders.get(
+                "/api/tasks?status=" + testTask.getTaskStatus().getSlug()
+        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(testTask.getTaskStatus().getSlug());
+    }
+
+    /*@Test
+    public void testIndexLabelFilter() throws Exception {
+        var labelId = testTask.getLabels().stream().findFirst().get().getId();
+        var result = mockMvc.perform(MockMvcRequestBuilders.get(
+                "/api/tasks?labelId=" + labelId
+        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(labelId.toString());
+    }*/
+
+    @Test
     @Transactional
     public void testCreate() throws Exception {
         var data = new TaskCreateDTO();
