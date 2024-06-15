@@ -17,6 +17,6 @@ rsa:
   public-key: classpath:certs/public.pem
 
 sentry:
-  dsn: todo_change_me
+  dsn: https://64153fd930929ea5ab98ee4b61e76c7f@o4507437203718144.ingest.de.sentry.io/4507437206929488
   tracesSampleRate: 1.0
   exception-resolver-order: -2147483647
