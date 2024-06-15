@@ -1,6 +1,5 @@
 package hexlet.code.app.controller.api;
 
-import io.sentry.Sentry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,13 +24,4 @@ public class WelcomeControllerTests {
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("Welcome to Spring");
     }
-
-    /*@Test
-    public void sentryErrorTest() {
-        try {
-            throw new Exception("This is a test.");
-        } catch (Exception e) {
-            Sentry.captureException(e);
-        }
-    }*/
 }
