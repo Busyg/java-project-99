@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -13,5 +13,5 @@ public class TaskStatusDTO {
     private Long id;
     private String name;
     private String slug;
-    private Timestamp createdAt;
+    private LocalDate createdAt;
 }

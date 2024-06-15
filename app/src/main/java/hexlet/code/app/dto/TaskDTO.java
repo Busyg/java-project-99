@@ -1,10 +1,12 @@
 package hexlet.code.app.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -15,6 +17,8 @@ public class TaskDTO {
     private Integer index;
     private String content;
     private String status;
+    @JsonProperty("assignee_id")
     private Long assigneeId;
-    private Timestamp createdAt;
+    private LocalDate createdAt;
+    private Set<Long> labelIds;
 }

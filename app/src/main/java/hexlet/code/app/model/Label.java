@@ -1,5 +1,6 @@
 package hexlet.code.app.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -19,21 +20,21 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Entity
 @Getter
 @Setter
-@Table(name = "task_statuses")
+@Table(name = "labels")
 @EntityListeners(AuditingEntityListener.class)
-public class TaskStatus implements BaseEntity {
+public class Label implements BaseEntity {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 3, max = 1000)
+    @Column(unique = true, columnDefinition = "TEXT")
     private String name;
-
-    @NotNull
-    @Size(min = 1)
-    private String slug;
 
     @CreatedDate
     private LocalDate createdAt;
+
+    /*@ManyToMany(fetch = FetchType.EAGER, mappedBy = "labels", cascade = CascadeType.ALL)
+    private Set<Task> tasks;*/
 }
