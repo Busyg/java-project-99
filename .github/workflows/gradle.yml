@@ -26,4 +26,4 @@ jobs:
           SENTRY_AUTH_TOKEN: "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"
         with:
           coverageCommand: make report
-          coverageLocations: ${{github.workspace}}/app/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
+          coverageLocations: ${{github.workspace}}/build/reports/jacoco/test/jacocoTestReport.xml:jacoco
