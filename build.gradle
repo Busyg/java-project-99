@@ -28,6 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
 	implementation("com.h2database:h2:2.2.224")
+	implementation 'org.postgresql:postgresql:42.7.3'
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 	implementation("net.datafaker:datafaker:2.1.0")
