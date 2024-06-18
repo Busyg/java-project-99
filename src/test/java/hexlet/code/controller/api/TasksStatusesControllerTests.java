@@ -114,7 +114,7 @@ public class TasksStatusesControllerTests {
     @Test
     public void testDelete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/task_statuses/{id}", testTaskStatus.getId()).with(jwt()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(taskStatusRepository.findById(testTaskStatus.getId())).isEmpty();
     }
 }

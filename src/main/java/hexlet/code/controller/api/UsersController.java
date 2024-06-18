@@ -70,7 +70,7 @@ public class UsersController {
     }
 
     @DeleteMapping(path = "/users/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         userRepository.deleteById(id);
     }

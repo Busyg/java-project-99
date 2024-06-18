@@ -112,7 +112,7 @@ public class LabelsControllerTests {
     @Test
     public void testDelete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/labels/{id}", testLabel.getId()).with(jwt()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
         Assertions.assertThat(labelRepository.findById(testLabel.getId())).isEmpty();
     }
 }

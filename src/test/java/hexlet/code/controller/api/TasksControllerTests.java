@@ -172,7 +172,7 @@ public class TasksControllerTests {
     @Test
     public void testDelete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/{id}", testTask.getId()).with(jwt()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(taskRepository.findById(testTask.getId())).isEmpty();
     }
 }

@@ -115,7 +115,7 @@ public class UsersControllerTests {
     @Test
     public void testDelete() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", testUser.getId()).with(jwt()))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(userRepository.findById(testUser.getId())).isEmpty();
     }
 }
