@@ -43,21 +43,21 @@ public abstract class TaskMapper {
     @Mapping(target = "description", source = "content")
     @Mapping(target = "assignee", source = "assigneeId", qualifiedByName = "mapAssignee")
     @Mapping(target = "taskStatus", source = "status", qualifiedByName = "mapTaskStatus")
-    @Mapping(target = "labels", source = "labelIds", qualifiedByName = "mapLabels")
+    @Mapping(target = "labels", source = "taskLabelIds", qualifiedByName = "mapLabels")
     public abstract Task map(TaskCreateDTO taskCreateDTO);
 
     @Mapping(target = "title", source = "name")
     @Mapping(target = "content", source = "description")
     @Mapping(target = "assigneeId", source = "assignee.id")
     @Mapping(target = "status", source = "taskStatus.slug")
-    @Mapping(target = "labelIds", source = "labels", qualifiedByName = "mapLabelIds")
+    @Mapping(target = "taskLabelIds", source = "labels", qualifiedByName = "mapTaskLabelIds")
     public abstract TaskDTO map(Task task);
 
     @Mapping(target = "name", source = "title")
     @Mapping(target = "description", source = "content")
     @Mapping(target = "assignee", source = "assigneeId", qualifiedByName = "mapAssignee")
     @Mapping(target = "taskStatus", source = "status", qualifiedByName = "mapTaskStatus")
-    @Mapping(target = "labels", source = "labelIds", qualifiedByName = "mapLabels")
+    @Mapping(target = "labels", source = "taskLabelIds", qualifiedByName = "mapLabels")
     public abstract void update(TaskUpdateDTO taskUpdateDTO, @MappingTarget Task task);
 
     @Named("mapTaskStatus")
@@ -73,12 +73,12 @@ public abstract class TaskMapper {
     }
 
     @Named("mapLabels")
-    public Set<Label> mapLabels(Set<Long> labelIds) {
-        System.out.println("labelIds: " + labelIds);
-        return labelIds == null ? new HashSet<>() : labelRepository.findAllByIdIn(labelIds);
+    public Set<Label> mapLabels(Set<Long> taskLabelIds) {
+        System.out.println("labelIds: " + taskLabelIds);
+        return taskLabelIds == null ? new HashSet<>() : labelRepository.findAllByIdIn(taskLabelIds);
     }
 
-    @Named("mapLabelIds")
+    @Named("mapTaskLabelIds")
     public Set<Long> mapLabelIds(Set<Label> labels) {
         System.out.println("labels: " + labels);
         return labels.stream().map(Label::getId).collect(Collectors.toSet());
