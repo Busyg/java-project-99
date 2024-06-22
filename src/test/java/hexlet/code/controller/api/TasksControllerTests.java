@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.dto.TaskCreateDTO;
 import hexlet.code.dto.TaskUpdateDTO;
 import hexlet.code.model.Task;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
+import hexlet.code.repository.TaskStatusRepository;
+import hexlet.code.repository.UserRepository;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -19,16 +23,14 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,6 +43,15 @@ public class TasksControllerTests {
     private TaskRepository taskRepository;
 
     @Autowired
+    private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
@@ -49,19 +60,17 @@ public class TasksControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
 
     private Task testTask;
 
-    @BeforeEach
-    public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-                .apply(springSecurity())
-                .build();
-
+    @BeforeAll
+    public static void setUp() {
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
+    }
 
+    @BeforeEach
+    public void beforeEach() {
         testTask = Instancio.of(modelGenerator.getTaskModel())
                 .create();
         taskRepository.save(testTask);
@@ -69,46 +78,45 @@ public class TasksControllerTests {
 
     @Test
     public void testIndex() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks").with(jwt()))
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains(testTask.getDescription());
     }
 
     @Test
-    public void testIndexTitleFilter() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get(
-                "/api/tasks?titleCont=" + testTask.getName()
-        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains(testTask.getName());
-    }
-
-    @Test
-    public void testIndexAssigneeFilter() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get(
-                "/api/tasks?assigneeId=" + testTask.getAssignee().getId()
-        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains(testTask.getAssignee().getId().toString());
-    }
-
-    @Test
-    public void testIndexStatusFilter() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get(
-                "/api/tasks?status=" + testTask.getTaskStatus().getSlug()
-        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains(testTask.getTaskStatus().getSlug());
-    }
-
-    /*@Test
-    public void testIndexLabelFilter() throws Exception {
-        var labelId = testTask.getLabels().stream().findFirst().get().getId();
-        var result = mockMvc.perform(MockMvcRequestBuilders.get(
-                "/api/tasks?labelId=" + labelId
-        ).with(jwt())).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        assertThat(result.getResponse().getContentAsString()).contains(labelId.toString());
-    }*/
-
-    @Test
     @Transactional
+    public void testIndexFilter() throws Exception {
+        var firstUser = Instancio.of(modelGenerator.getUserModel()).create();
+        var secondUser = Instancio.of(modelGenerator.getUserModel()).create();
+        userRepository.saveAll(List.of(firstUser, secondUser));
+
+        var firstTask = Instancio.of(modelGenerator.getTaskModel()).create();
+        firstTask.setName("first task");
+        firstTask.setAssignee(firstUser);
+        firstTask.setTaskStatus(taskStatusRepository.findBySlug("draft").get());
+        firstTask.setLabels(Set.of(labelRepository.findByName("bug").get()));
+
+        var secondTask = Instancio.of(modelGenerator.getTaskModel()).create();
+        secondTask.setName("second task");
+        secondTask.setAssignee(secondUser);
+        secondTask.setTaskStatus(taskStatusRepository.findBySlug("to_review").get());
+        secondTask.setLabels(Set.of(labelRepository.findByName("feature").get()));
+        taskRepository.saveAll(List.of(firstTask, secondTask));
+
+        var result = mockMvc.perform(MockMvcRequestBuilders.get(
+                "/api/tasks?titleCont=" + firstTask.getName()
+                + "&assigneeId=" + firstTask.getAssignee().getId()
+                + "&status=" + firstTask.getTaskStatus().getSlug()
+                + "&labelId=" + firstTask.getLabels().stream().findFirst().get().getId()
+        ).with(token)).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+        assertThat(result.getResponse().getContentAsString()).contains(firstTask.getName());
+        assertThat(result.getResponse().getContentAsString()).contains(firstTask.getAssignee().getId().toString());
+        assertThat(result.getResponse().getContentAsString()).contains(firstTask.getTaskStatus().getSlug());
+        assertThat(result.getResponse().getContentAsString()).contains(firstTask.getLabels()
+                .stream().findFirst().get().getId().toString());
+    }
+
+    @Test
     public void testCreate() throws Exception {
         var data = new TaskCreateDTO();
         data.setIndex(9000);
@@ -125,7 +133,7 @@ public class TasksControllerTests {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated());
         var task = taskRepository.findByName(data.getTitle()).get();
-        assertNotNull(task);
+        assertThat(task).isNotNull();
         assertThat(task.getName()).isEqualTo(data.getTitle());
         assertThat(task.getIndex()).isEqualTo(data.getIndex());
         assertThat(task.getDescription()).isEqualTo(data.getContent());
@@ -136,7 +144,7 @@ public class TasksControllerTests {
     @Test
     public void testShow() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks/{id}", testTask.getId())
-                        .with(jwt()))
+                        .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains(testTask.getDescription());
     }
@@ -157,11 +165,6 @@ public class TasksControllerTests {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         var task = taskRepository.findById(testTask.getId()).get();
-        System.out.println(task.getName());
-        System.out.println(task.getIndex());
-        System.out.println(task.getDescription());
-        System.out.println(task.getTaskStatus().getSlug());
-        System.out.println(task.getAssignee().getId());
         assertThat(task.getName()).isEqualTo("Task 1");
         assertThat(task.getIndex()).isEqualTo(9000);
         assertThat(task.getDescription()).isEqualTo("Description of task 1");
@@ -171,7 +174,7 @@ public class TasksControllerTests {
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/{id}", testTask.getId()).with(jwt()))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/{id}", testTask.getId()).with(token))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(taskRepository.findById(testTask.getId())).isEmpty();
     }

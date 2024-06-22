@@ -1,11 +1,12 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.dto.LabelUpdateDTO;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.util.ModelGenerator;
-import org.assertj.core.api.Assertions;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,16 +17,10 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,19 +40,17 @@ public class LabelsControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
 
     private Label testLabel;
 
-    @BeforeEach
-    public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-                .apply(springSecurity())
-                .build();
-
+    @BeforeAll
+    public static void setUp() {
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
+    }
 
+    @BeforeEach
+    public void beforeEach() {
         testLabel = Instancio.of(modelGenerator.getLabelModel())
                 .create();
         labelRepository.save(testLabel);
@@ -65,7 +58,7 @@ public class LabelsControllerTests {
 
     @Test
     public void testIndex() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/labels").with(jwt()))
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/labels").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("feature");
     }
@@ -82,22 +75,22 @@ public class LabelsControllerTests {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated());
         var label = labelRepository.findByName(data.getName()).get();
-        assertNotNull(label);
-        Assertions.assertThat(label.getName()).isEqualTo(data.getName());
+        assertThat(label).isNotNull();
+        assertThat(label.getName()).isEqualTo(data.getName());
     }
 
     @Test
     public void testShow() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/labels/{id}", testLabel.getId())
-                        .with(jwt()))
+                        .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains(testLabel.getName());
     }
 
     @Test
     public void testUpdate() throws Exception {
-        var data = new HashMap<>();
-        data.put("name", "testName");
+        var data = new LabelUpdateDTO();
+        data.setName("testName");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/labels/{id}", testLabel.getId())
                         .with(token)
@@ -106,13 +99,13 @@ public class LabelsControllerTests {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         var label = labelRepository.findById(testLabel.getId()).get();
-        Assertions.assertThat(label.getName()).isEqualTo("testName");
+        assertThat(label.getName()).isEqualTo("testName");
     }
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/labels/{id}", testLabel.getId()).with(jwt()))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/labels/{id}", testLabel.getId()).with(token))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
-        Assertions.assertThat(labelRepository.findById(testLabel.getId())).isEmpty();
+        assertThat(labelRepository.findById(testLabel.getId())).isEmpty();
     }
 }

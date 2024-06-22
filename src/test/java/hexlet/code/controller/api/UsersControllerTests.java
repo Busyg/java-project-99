@@ -1,6 +1,7 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.dto.UserUpdateDTO;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.ModelGenerator;
@@ -14,16 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 
 @SpringBootTest
@@ -51,16 +46,10 @@ public class UsersControllerTests {
 
     @BeforeEach
     public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-                .apply(springSecurity())
-                .build();
-
-        token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
-
         testUser = Instancio.of(modelGenerator.getUserModel())
                 .create();
         userRepository.save(testUser);
+        token = jwt().jwt(builder -> builder.subject(testUser.getEmail()));
     }
 
     @Test
@@ -81,8 +70,8 @@ public class UsersControllerTests {
                         .content(objectMapper.writeValueAsString(data))
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated());
-        var user = userRepository.findByEmail(data.getEmail()).get();
-        assertNotNull(user);
+        var user = userRepository.findByEmail(data.getEmail()).orElseThrow();
+        assertThat(user).isNotNull();
         assertThat(user.getFirstName()).isEqualTo(data.getFirstName());
         assertThat(user.getLastName()).isEqualTo(data.getLastName());
     }
@@ -97,9 +86,9 @@ public class UsersControllerTests {
 
     @Test
     public void testUpdate() throws Exception {
-        var data = new HashMap<>();
-        data.put("email", "testmail@testmail.com");
-        data.put("firstName", "Test");
+        var data = new UserUpdateDTO();
+        data.setEmail("testmail@testmail.com");
+        data.setFirstName("Test");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", testUser.getId())
                     .with(token)
@@ -107,15 +96,47 @@ public class UsersControllerTests {
                     .content(objectMapper.writeValueAsString(data)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        var user = userRepository.findById(testUser.getId()).get();
+        var user = userRepository.findById(testUser.getId()).orElseThrow();
         assertThat(user.getFirstName()).isEqualTo("Test");
         assertThat(user.getEmail()).isEqualTo("testmail@testmail.com");
     }
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", testUser.getId()).with(jwt()))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", testUser.getId()).with(token))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(userRepository.findById(testUser.getId())).isEmpty();
+    }
+
+    @Test
+    public void testDeleteAnotherUser() throws Exception {
+        var anotherUser = Instancio.of(modelGenerator.getUserModel()).create();
+        userRepository.save(anotherUser);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/users/{id}", anotherUser.getId()).with(token))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+        assertThat(userRepository.findById(anotherUser.getId())).isNotEmpty();
+    }
+
+    @Test
+    public void testUpdateAnotherUser() throws Exception {
+        var anotherUser = Instancio.of(modelGenerator.getUserModel()).create();
+        var initialName = anotherUser.getFirstName();
+        var initialEmail = anotherUser.getEmail();
+        userRepository.save(anotherUser);
+
+        var data = new UserUpdateDTO();
+        data.setEmail("testmail@testmail.com");
+        data.setFirstName("Test");
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/users/{id}", anotherUser.getId())
+                        .with(token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(MockMvcResultMatchers.status().isForbidden());
+
+        var user = userRepository.findById(anotherUser.getId()).orElseThrow();
+        assertThat(user.getFirstName()).isEqualTo(initialName);
+        assertThat(user.getEmail()).isEqualTo(initialEmail);
     }
 }

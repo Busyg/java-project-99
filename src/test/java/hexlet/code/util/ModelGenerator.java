@@ -10,8 +10,9 @@ import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Model;
 import org.instancio.Select;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
 
 @Getter
 @Component
@@ -22,11 +23,10 @@ public class ModelGenerator {
     private Model<Task> taskModel;
     private Model<Label> labelModel;
 
-    @Autowired
-    private Faker faker;
-
     @PostConstruct
     private void init() {
+        var faker = new Faker();
+
         userModel = Instancio.of(User.class)
                 .ignore(Select.field(User::getId))
                 .ignore(Select.field(User::getCreatedAt))
@@ -43,11 +43,11 @@ public class ModelGenerator {
         taskModel = Instancio.of(Task.class)
                 .ignore(Select.field(Task::getId))
                 .ignore(Select.field(Task::getCreatedAt))
-                .ignore(Select.field(Task::getLabels))
                 .supply(Select.field(Task::getName), () -> faker.text().text(1, 100))
                 .supply(Select.field(Task::getDescription), () -> faker.text().text(255))
                 .supply(Select.field(Task::getTaskStatus), () -> Instancio.of(taskStatusModel).create())
                 .supply(Select.field(Task::getAssignee), () -> Instancio.of(userModel).create())
+                .supply(Select.field(Task::getLabels), () -> Set.of(Instancio.of(labelModel).create()))
                 .toModel();
 
         labelModel = Instancio.of(Label.class)

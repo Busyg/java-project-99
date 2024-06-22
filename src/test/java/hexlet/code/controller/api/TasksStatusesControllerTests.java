@@ -1,10 +1,12 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.dto.TaskStatusUpdateDTO;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.util.ModelGenerator;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,16 +17,10 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -44,17 +40,17 @@ public class TasksStatusesControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private static SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
 
     private TaskStatus testTaskStatus;
 
-    @BeforeEach
-    public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-                .apply(springSecurity())
-                .build();
+    @BeforeAll
+    public static void setUp() {
+        token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
+    }
 
+    @BeforeEach
+    public void beforeEach() {
         token = jwt().jwt(builder -> builder.subject("hexlet@example.com"));
 
         testTaskStatus = Instancio.of(modelGenerator.getTaskStatusModel())
@@ -64,7 +60,7 @@ public class TasksStatusesControllerTests {
 
     @Test
     public void testIndex() throws Exception {
-        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses").with(jwt()))
+        var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("to_publish");
     }
@@ -81,7 +77,7 @@ public class TasksStatusesControllerTests {
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated());
         var taskStatus = taskStatusRepository.findBySlug(data.getSlug()).get();
-        assertNotNull(taskStatus);
+        assertThat(taskStatus).isNotNull();
         assertThat(taskStatus.getName()).isEqualTo(data.getName());
         assertThat(taskStatus.getSlug()).isEqualTo(data.getSlug());
     }
@@ -89,16 +85,16 @@ public class TasksStatusesControllerTests {
     @Test
     public void testShow() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses/{id}", testTaskStatus.getId())
-                        .with(jwt()))
+                        .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains(testTaskStatus.getSlug());
     }
 
     @Test
     public void testUpdate() throws Exception {
-        var data = new HashMap<>();
-        data.put("name", "testName");
-        data.put("slug", "test_slug");
+        var data = new TaskStatusUpdateDTO();
+        data.setName("testName");
+        data.setSlug("test_slug");
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/task_statuses/{id}", testTaskStatus.getId())
                         .with(token)
@@ -113,7 +109,7 @@ public class TasksStatusesControllerTests {
 
     @Test
     public void testDelete() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/task_statuses/{id}", testTaskStatus.getId()).with(jwt()))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/task_statuses/{id}", testTaskStatus.getId()).with(token))
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
         assertThat(taskStatusRepository.findById(testTaskStatus.getId())).isEmpty();
     }
