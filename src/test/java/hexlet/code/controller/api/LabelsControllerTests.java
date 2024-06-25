@@ -1,7 +1,7 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hexlet.code.dto.LabelUpdateDTO;
+import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.util.ModelGenerator;
@@ -57,7 +57,7 @@ public class LabelsControllerTests {
     }
 
     @Test
-    public void testIndex() throws Exception {
+    public void testGetAll() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/labels").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("feature");
@@ -80,7 +80,7 @@ public class LabelsControllerTests {
     }
 
     @Test
-    public void testShow() throws Exception {
+    public void testGetById() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/labels/{id}", testLabel.getId())
                         .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();

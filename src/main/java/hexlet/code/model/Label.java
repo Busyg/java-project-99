@@ -34,7 +34,4 @@ public class Label implements BaseEntity {
 
     @CreatedDate
     private LocalDate createdAt;
-
-    /*@ManyToMany(fetch = FetchType.EAGER, mappedBy = "labels", cascade = CascadeType.ALL)
-    private Set<Task> tasks;*/
 }

@@ -1,13 +1,11 @@
 package hexlet.code.controller.api;
 
-import hexlet.code.dto.LabelCreateDTO;
-import hexlet.code.dto.LabelDTO;
-import hexlet.code.dto.LabelUpdateDTO;
-import hexlet.code.exception.ResourceNotFoundException;
-import hexlet.code.mapper.LabelMapper;
-import hexlet.code.repository.LabelRepository;
+import hexlet.code.dto.label.LabelCreateDTO;
+import hexlet.code.dto.label.LabelDTO;
+import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.service.LabelService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,54 +23,42 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api")
+@RequiredArgsConstructor
 public class LabelsController {
 
     @Autowired
-    private LabelRepository labelRepository;
-    @Autowired
-    private LabelService labelService;
-    @Autowired
-    private LabelMapper labelMapper;
+    final LabelService labelService;
 
     @GetMapping(path = "/labels")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<LabelDTO>> index() {
-        var labels = labelRepository.findAll();
-        var result = labels.stream().map(labelMapper::map).toList();
+    public ResponseEntity<List<LabelDTO>> getAll() {
+        var labels = labelService.getAll();
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(labels.size()))
-                .body(result);
+                .body(labels);
     }
 
     @PostMapping(path = "/labels")
     @ResponseStatus(HttpStatus.CREATED)
     public LabelDTO create(@Valid @RequestBody LabelCreateDTO labelCreateDTO) {
-        var label = labelMapper.map(labelCreateDTO);
-        labelRepository.save(label);
-        return labelMapper.map(label);
+        return labelService.create(labelCreateDTO);
     }
 
     @PutMapping(path = "/labels/{id}")
     @ResponseStatus(HttpStatus.OK)
     public LabelDTO update(@RequestBody LabelUpdateDTO labelUpdateDTO, @PathVariable Long id) {
-        var label = labelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found"));
-        labelMapper.update(labelUpdateDTO, label);
-        labelRepository.save(label);
-        return labelMapper.map(label);
+        return labelService.update(labelUpdateDTO, id);
     }
 
     @GetMapping(path = "/labels/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public LabelDTO show(@PathVariable Long id) {
-        var label = labelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found"));
-        return labelMapper.map(label);
+    public LabelDTO getById(@PathVariable Long id) {
+        return labelService.findById(id);
     }
 
     @DeleteMapping(path = "/labels/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        labelRepository.deleteById(id);
+        labelService.delete(id);
     }
 }

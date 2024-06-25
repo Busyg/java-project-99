@@ -1,20 +1,20 @@
-package hexlet.code.dto;
+package hexlet.code.dto.label;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @AllArgsConstructor
-public class TaskStatusCreateDTO {
+@NoArgsConstructor
+public class LabelUpdateDTO {
     @NotNull
-    @Size(min = 1)
+    @Size(min = 3, max = 1000)
+    @Column(unique = true)
     private String name;
-
-    @NotNull
-    @Size(min = 1)
-    private String slug;
 }

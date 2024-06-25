@@ -1,7 +1,7 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hexlet.code.dto.TaskStatusUpdateDTO;
+import hexlet.code.dto.taskStatus.TaskStatusUpdateDTO;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.util.ModelGenerator;
@@ -59,7 +59,7 @@ public class TasksStatusesControllerTests {
     }
 
     @Test
-    public void testIndex() throws Exception {
+    public void testGetAll() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("to_publish");
@@ -83,7 +83,7 @@ public class TasksStatusesControllerTests {
     }
 
     @Test
-    public void testShow() throws Exception {
+    public void testGetById() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/task_statuses/{id}", testTaskStatus.getId())
                         .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();

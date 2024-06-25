@@ -1,13 +1,11 @@
 package hexlet.code.controller.api;
 
-import hexlet.code.dto.TaskStatusCreateDTO;
-import hexlet.code.dto.TaskStatusDTO;
-import hexlet.code.dto.TaskStatusUpdateDTO;
-import hexlet.code.exception.ResourceNotFoundException;
-import hexlet.code.mapper.TaskStatusMapper;
-import hexlet.code.repository.TaskStatusRepository;
+import hexlet.code.dto.taskStatus.TaskStatusCreateDTO;
+import hexlet.code.dto.taskStatus.TaskStatusDTO;
+import hexlet.code.dto.taskStatus.TaskStatusUpdateDTO;
 import hexlet.code.service.TaskStatusService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,54 +23,42 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api")
+@RequiredArgsConstructor
 public class TaskStatusesController {
 
     @Autowired
-    private TaskStatusRepository taskStatusRepository;
-    @Autowired
-    private TaskStatusService taskStatusService;
-    @Autowired
-    private TaskStatusMapper taskStatusMapper;
+    final TaskStatusService taskStatusService;
 
     @GetMapping(path = "/task_statuses")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<TaskStatusDTO>> index() {
-        var taskStatuses = taskStatusRepository.findAll();
-        var result = taskStatuses.stream().map(taskStatusMapper::map).toList();
+    public ResponseEntity<List<TaskStatusDTO>> getAll() {
+        var taskStatuses = taskStatusService.getAll();
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(taskStatuses.size()))
-                .body(result);
+                .body(taskStatuses);
     }
 
     @PostMapping("/task_statuses")
     @ResponseStatus(HttpStatus.CREATED)
     public TaskStatusDTO create(@Valid @RequestBody TaskStatusCreateDTO taskStatusCreateDTO) {
-        var taskStatus = taskStatusMapper.map(taskStatusCreateDTO);
-        taskStatusRepository.save(taskStatus);
-        return taskStatusMapper.map(taskStatus);
+        return taskStatusService.create(taskStatusCreateDTO);
     }
 
     @PutMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
     public TaskStatusDTO update(@RequestBody TaskStatusUpdateDTO taskStatusUpdateDTO, @PathVariable Long id) {
-        var taskStatus = taskStatusRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found"));
-        taskStatusMapper.update(taskStatusUpdateDTO, taskStatus);
-        taskStatusRepository.save(taskStatus);
-        return taskStatusMapper.map(taskStatus);
+        return taskStatusService.update(taskStatusUpdateDTO, id);
     }
 
     @GetMapping("/task_statuses/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public TaskStatusDTO show(@PathVariable Long id) {
-        var taskStatus = taskStatusRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not Found"));
-        return taskStatusMapper.map(taskStatus);
+    public TaskStatusDTO getById(@PathVariable Long id) {
+        return taskStatusService.findById(id);
     }
 
     @DeleteMapping(path = "/task_statuses/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
-        taskStatusRepository.deleteById(id);
+        taskStatusService.delete(id);
     }
 }

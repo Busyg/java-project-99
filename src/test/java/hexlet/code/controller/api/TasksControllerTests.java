@@ -2,8 +2,8 @@ package hexlet.code.controller.api;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hexlet.code.dto.TaskCreateDTO;
-import hexlet.code.dto.TaskUpdateDTO;
+import hexlet.code.dto.task.TaskCreateDTO;
+import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.model.Task;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
@@ -77,7 +77,7 @@ public class TasksControllerTests {
     }
 
     @Test
-    public void testIndex() throws Exception {
+    public void testGetAll() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks").with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains(testTask.getDescription());
@@ -85,7 +85,7 @@ public class TasksControllerTests {
 
     @Test
     @Transactional
-    public void testIndexFilter() throws Exception {
+    public void testGetAllFilter() throws Exception {
         var firstUser = Instancio.of(modelGenerator.getUserModel()).create();
         var secondUser = Instancio.of(modelGenerator.getUserModel()).create();
         userRepository.saveAll(List.of(firstUser, secondUser));
@@ -142,7 +142,7 @@ public class TasksControllerTests {
     }
 
     @Test
-    public void testShow() throws Exception {
+    public void testGetById() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks/{id}", testTask.getId())
                         .with(token))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();

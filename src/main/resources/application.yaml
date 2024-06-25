@@ -2,11 +2,15 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     open-in-view: false
   output:
     ansi:
       enabled: always
+  datasource:
+    url: jdbc:h2:mem:project
+    username: "admin"
+    password: "123"
 
 server:
   address: 0.0.0.0

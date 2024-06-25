@@ -1,7 +1,7 @@
 package hexlet.code.component;
 
-import hexlet.code.dto.LabelCreateDTO;
-import hexlet.code.dto.TaskStatusCreateDTO;
+import hexlet.code.dto.label.LabelCreateDTO;
+import hexlet.code.dto.taskStatus.TaskStatusCreateDTO;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.service.CustomUserDetailsService;
@@ -18,13 +18,13 @@ import org.springframework.stereotype.Component;
 public class DataInitializer implements ApplicationRunner {
 
     @Autowired
-    private final UserRepository userRepository;
+    final UserRepository userRepository;
     @Autowired
-    private final CustomUserDetailsService customUserDetailsService;
+    final CustomUserDetailsService customUserDetailsService;
     @Autowired
-    private final TaskStatusService taskStatusService;
+    final TaskStatusService taskStatusService;
     @Autowired
-    private final LabelService labelService;
+    final LabelService labelService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {

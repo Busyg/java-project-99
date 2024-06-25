@@ -1,7 +1,7 @@
 package hexlet.code.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hexlet.code.dto.UserUpdateDTO;
+import hexlet.code.dto.user.UserUpdateDTO;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import hexlet.code.util.ModelGenerator;
@@ -53,7 +53,7 @@ public class UsersControllerTests {
     }
 
     @Test
-    public void testIndex() throws Exception {
+    public void testGetAll() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/users").with(jwt()))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
         assertThat(result.getResponse().getContentAsString()).contains("hexlet@example.com");
@@ -77,7 +77,7 @@ public class UsersControllerTests {
     }
 
     @Test
-    public void testShow() throws Exception {
+    public void testGetById() throws Exception {
         var result = mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{id}", testUser.getId())
                         .with(jwt()))
                 .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();

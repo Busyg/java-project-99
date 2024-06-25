@@ -1,4 +1,4 @@
-package hexlet.code.dto;
+package hexlet.code.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,9 +9,10 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @AllArgsConstructor
-public class TaskStatusDTO {
+public class UserDTO {
     private Long id;
-    private String name;
-    private String slug;
+    private String firstName;
+    private String lastName;
+    private String email;
     private LocalDate createdAt;
 }
