@@ -40,29 +40,14 @@ public class Task implements BaseEntity {
 
     @NotNull
     @ManyToOne(cascade = CascadeType.ALL)
-    /*
-        Если убрать cascade, получаю ошибку org.hibernate.TransientPropertyValueException:
-        object references an unsaved transient instance - save the transient instance before flushing :
-        hexlet.code.model.Task.taskStatus -> hexlet.code.model.TaskStatus
-    */
     private TaskStatus taskStatus;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    /*
-        Если убрать cascade, получаю ошибку org.hibernate.TransientPropertyValueException:
-        object references an unsaved transient instance - save the transient instance before flushing :
-        hexlet.code.model.Task.assignee -> hexlet.code.model.User
-    */
     private User assignee;
 
     @CreatedDate
     private LocalDate createdAt;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    /*
-        Если убрать cascade, получаю ошибку org.hibernate.TransientPropertyValueException:
-        object references an unsaved transient instance - save the transient instance before flushing :
-        hexlet.code.model.Label
-    */
     private Set<Label> labels = new HashSet<>();
 }
